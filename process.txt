@@ -1,0 +1,30 @@
+skinuti sve
+
+$ bash 1.sh 
+
+unzipati
+
+$ python3 src/generation/unzip_data.py
+
+obrisati zipove
+
+$ rm -rf data/data-aws
+$ mv data/data-aws-unzipped data/data-aws
+
+naci min i maks vrijednost
+
+$ python3 src/generation/min_max.py
+
+napraviti runde i test data,
+ - izmjeniti start i end rundi
+
+$ python3 src/generation/split_by_rounds.py
+
+napraviti parquet file runde
+ - namjestiti len_full
+
+$ python3 src/generation/exp.py
+
+augmentirati graf
+
+$ python3 src/processing/generate.py
