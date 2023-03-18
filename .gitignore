@@ -226,3 +226,4 @@ pip-selfcheck.json
 
 data/
 share/
+.DS_Store
