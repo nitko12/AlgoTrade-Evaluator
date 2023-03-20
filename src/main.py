@@ -16,7 +16,6 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 exchange = Exchange(True)
 
-
 # /getAllPairs
 # /getPairs
 # /getHistoricalPairs
@@ -47,10 +46,14 @@ async def getAllPairs(request: Request):
     Rate limit: 5/second
     """
     try:
-        return exchange.getAllPairs()
+
+        all_pairs = exchange.getAllPairs()
+
     except Exception as e:
 
         raise HTTPException(status_code=400, detail=str(e))
+
+    return all_pairs
 
 
 @app.get("/getPairs/{pairs}")

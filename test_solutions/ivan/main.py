@@ -1,6 +1,11 @@
 import requests
 from pprint import pprint
 import random
+import time
+import networkx as nx
+import math
+import matplotlib.pyplot as plt
+import json
 
 URL = "http://localhost:3000"
 
@@ -21,23 +26,29 @@ def main():
 
     print("Secret: ", secret)
 
-    # place order
+    while True:
 
-    res = requests.get(
-        f"{URL}/createOrders/{username}/{secret}/USDT,BTC,100")
+        res = requests.get(
+            f"{URL}/getAllPairs")
 
-    if res.status_code != 200:
-        print(res.json())
+        G = nx.DiGraph()
 
-    # get my balance
+        if res.status_code != 200:
+            print(res.json())
 
-    res = requests.get(
-        f"{URL}/balance/{username}")
+            continue
 
-    if res.status_code != 200:
-        print(res.json())
+        all_pairs = set()
 
-    pprint(res.json())
+        res_json = res.json()
+        res_json = json.load(open("test.json"))
+
+        for pair in res_json:
+            print(pair, res_json[pair])
+
+        exit()
+
+        time.sleep(1)
 
 
 if __name__ == '__main__':

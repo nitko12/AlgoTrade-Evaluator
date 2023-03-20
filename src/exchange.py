@@ -9,13 +9,13 @@ class Exchange:
 
         self.test = test
 
-        self.df = pd.read_parquet('../data/rounds/round_1_augmented.parquet')
+        self.df = pd.read_csv("../data/data2.csv")
         self.start_time = time.time()
 
         all_currencies = set()
 
         for column in self.df.columns:
-            if column.startswith("close_") and not column.startswith("close_time"):
+            if column.startswith("close_"):
                 pair = column.split("_")[1]
                 currency1, currency2 = pair.split(",")
 
@@ -24,7 +24,7 @@ class Exchange:
 
         self.balances = Balances(all_currencies)
 
-        self.last_volume_update = 0
+        self.last_volume_update = -1
         self.volume = {}
 
         # print(all_currencies)
@@ -40,7 +40,9 @@ class Exchange:
                 self.volume[column] = self.df[column].iloc[self.last_volume_update]
 
     def getTime(self):
-        return int(time.time() - self.start_time)
+        # return int(time.time() - self.start_time)
+
+        return 0
 
     def getAllPairs(self):
         return self.getAllPairsAtTime(self.getTime())
@@ -69,10 +71,12 @@ class Exchange:
             if column.startswith("close_") and not column.startswith("close_time"):
                 out[column] = self.df[column].iloc[at_time]
 
+        # print(self.getAllVolumes().items())
+
         for key, value in self.getAllVolumes().items():
             pair = key.split("_")[1]
 
-            out[pair] = value
+            out["volume_" + pair] = value
 
         return out
 

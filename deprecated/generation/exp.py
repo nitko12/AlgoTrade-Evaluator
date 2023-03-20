@@ -54,10 +54,17 @@ def main():
         df_master = df_master.join(df.set_index(
             "time_"), rsuffix="_" + file.split(".")[0])
 
-    print(df_master.shape)
+    print(df_master.columns)
+
+    columns_to_leave = ["time"]
 
     for column in df_master.columns:
-        print(column)
+        if column.startswith("close_") and not column.startswith("close_time"):
+            columns_to_leave.append(column)
+        if column.startswith("volume_"):
+            columns_to_leave.append(column)
+
+    df_master = df_master[columns_to_leave]
 
     df_master.to_parquet("data/rounds/" + round_name + ".parquet")
 

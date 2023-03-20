@@ -7,6 +7,7 @@ BASE = "USDT"
 class Balances:
 
     def __init__(self, all_currencies):
+        print("Creating balances")
         self.balances = {}
         self.all_currencies = all_currencies
         self.secrets_to_user = {}
@@ -14,6 +15,9 @@ class Balances:
         self.balance_mutex = Lock()
 
     def register(self, user):
+
+        # print(self.balances)
+
         if user in self.balances:
             raise Exception("User already registered")
 
@@ -63,6 +67,9 @@ class Balances:
         try:
             all_orders = orders.split("|")
 
+            if len(set(all_orders)) != len(all_orders):
+                raise Exception("Duplicate orders")
+
             new_user_balance = self.balances[user].copy()
 
             for order in all_orders:
@@ -74,21 +81,39 @@ class Balances:
                 amount = float(amount)
 
                 if fr not in new_user_balance:
-                    raise Exception("User does not have currency " + fr)
+
+                    raise Exception(
+                        "User does not have currency to buy " + fr + " " + str(new_user_balance))
 
                 if to not in new_user_balance:
-                    raise Exception("User does not have currency " + to)
+                    raise Exception(
+                        "User does not have currency to buy " + to + " " + str(new_user_balance))
 
                 if new_user_balance[fr] < amount:
-                    raise Exception("User does not have enough " + fr)
+                    raise Exception(
+                        "User does not have enough to buy " + to + " " + str(new_user_balance))
 
                 if amount > volumes["volume_" + fr + "," + to]:
-                    raise Exception("Not enough volume on " + fr + "," + to + " to buy " + str(
-                        amount) + " available: " + str(volumes["volume_" + fr + "," + to]))
+                    raise Exception("Not enough volume on " +
+                                    fr + "," + to + " " + str(volumes))
+
+                if amount *\
+                        prices["close_" + fr + "," + to] < 1e-8:
+                    raise Exception("Too small order")
+
+                if amount < 1e-8:
+                    raise Exception("Too small order")
+
+                if amount *\
+                        prices["close_" + fr + "," + to] > 1e8:
+                    raise Exception("Too big order")
+
+                if amount > 1e8:
+                    raise Exception("Too big order")
 
                 volumes["volume_" + fr + "," + to] -= amount
                 new_user_balance[fr] -= amount
-                new_user_balance[to] += amount * \
+                new_user_balance[to] += amount *\
                     prices["close_" + fr + "," + to]
 
             self.balances[user] = new_user_balance

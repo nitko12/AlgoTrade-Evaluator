@@ -83,9 +83,9 @@ def augment_sample(sample):
 
     m = gp.Model()
 
-    m.params.OutputFlag = 0
+    # m.params.OutputFlag = 0
 
-    offsets = m.addVars(G.edges, lb=-offset, ub=0)
+    offsets = m.addVars(G.edges, lb=-10*offset, ub=0)
 
     dist = {
         node: 1e9
@@ -116,6 +116,17 @@ def augment_sample(sample):
             m.addConstr(
                 dist[v] <= dist[u] + e['weight'] + offsets[(u, v)]
             )
+
+    for fr, to in G.edges:
+        m.addConstr(
+            offsets[(fr, to)] + G[fr][to]['weight'] +
+            offsets[(to, fr)] + G[to][fr]['weight'] <= -math.log(0.9)
+        )
+
+        # m.addConstr(
+        #     offsets[(fr, to)] + G[fr][to]['weight'] +
+        #     offsets[(to, fr)] + G[to][fr]['weight'] <= 0.999
+        # )
 
     m.setObjective(
         gp.quicksum(
@@ -168,8 +179,8 @@ def main():
 
     # df["time"] = df["time_SUSHI,BIDR"]
 
-    for column in df.columns:
-        print(column)
+    # for column in df.columns:
+    #     print(column)
 
     df = df.sort_values('time')
 
@@ -179,6 +190,10 @@ def main():
 
     for data_sample in tqdm(df.iloc, total=len(df)):
         out = augment_sample(data_sample.to_dict())
+
+        print(out)
+
+        exit()
 
         out["time"] = data_sample["time"]
 
