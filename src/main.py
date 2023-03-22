@@ -1,3 +1,5 @@
+import json
+from pprint import pprint
 from fastapi import FastAPI, HTTPException, Request
 import pandas as pd
 import time
@@ -56,8 +58,8 @@ async def getAllPairs(request: Request):
     return all_pairs
 
 
-@app.get("/getPairs/{pairs}")
-@limiter.limit("5/second")
+@ app.get("/getPairs/{pairs}")
+@ limiter.limit("5/second")
 async def getPairs(request: Request, pairs: str):
     """
     Returns the current close price and volume for the given pairs,
@@ -90,8 +92,8 @@ async def getPairs(request: Request, pairs: str):
     return out
 
 
-@app.get("/getHistoricalPairs/{time_to_get}/{pairs}")
-@limiter.limit("5/second")
+@ app.get("/getHistoricalPairs/{time_to_get}/{pairs}")
+@ limiter.limit("5/second")
 async def getHistoricalPairs(request: Request, time_to_get: int, pairs: str):
     """
     Returns the close price and volume for the given pairs at the given time,
@@ -127,8 +129,8 @@ async def getHistoricalPairs(request: Request, time_to_get: int, pairs: str):
     return out
 
 
-@app.get("/createOrders/{user}/{secret}/{orders}")
-@limiter.limit("10/second")
+@ app.get("/createOrders/{user}/{secret}/{orders}")
+@ limiter.limit("10/second")
 async def createOrders(request: Request, user: str, secret: str, orders: str):
     """
     Places the given orders for the given user, orders is a pipe separated list of orders,
@@ -147,8 +149,8 @@ async def createOrders(request: Request, user: str, secret: str, orders: str):
     return {"message": "Orders created"}
 
 
-@app.get("/register/{user}")
-@limiter.limit("1/second")
+@ app.get("/register/{user}")
+@ limiter.limit("1/second")
 async def register(request: Request, user: str):
     """
     Registers the given user and returns a secret,
@@ -167,8 +169,8 @@ async def register(request: Request, user: str):
     return {"secret": secret}
 
 
-@app.get("/resetBalance/{user}/{secret}")
-@limiter.limit("1/second")
+@ app.get("/resetBalance/{user}/{secret}")
+@ limiter.limit("1/second")
 async def resetBalance(request: Request, user: str, secret: str):
     """
     Resets the balance of the given user to 1000 USD and all others to 0.
@@ -186,8 +188,8 @@ async def resetBalance(request: Request, user: str, secret: str):
     return {"message": "Balance reset"}
 
 
-@app.get("/balance/{user}")
-@limiter.limit("20/second")
+@ app.get("/balance/{user}")
+@ limiter.limit("20/second")
 async def balance(request: Request, user: str):
     """
     Returns the balance of the given user in all currencies.

@@ -6,7 +6,26 @@ import time
 
 URL = "http://localhost:3000"
 
-username = "nitko" + str(random.randint(0, 100000))
+username = "nitko"
+
+
+def placeOrder(user, secret, order):
+
+    orderText = ""
+
+    for fr, to, amount in order:
+        orderText += f"{fr},{to},{int(amount * 10 ** 8)}|"
+
+    orderText = orderText[:-1]
+
+    print("Order text: ", orderText)
+
+    res = requests.get(
+        f"{URL}/createOrders/{user}/{secret}/{orderText}")
+
+    print("Order: ", res.json())
+
+    return "detail" in res.json()
 
 
 def main():
@@ -47,16 +66,12 @@ def main():
             fr, to = key.split(",")
 
             G.add_edge(
-                fr, to, weight=data["close_"+key], volume=data["volume_"+key])
-
-            volume = data["volume_"+key]
-            sell_volume = volume * data["close_"+key]
-
-            G.add_edge(to, fr, weight=0.99*1 /
-                       data["close_"+key], volume=sell_volume)
+                fr, to, weight=data["close_"+key] / (10 ** 8), volume=data["volume_"+key] / (10 ** 8))
 
         q = []
         q.append((startingCurr, 1, [startingCurr]))
+
+        # q.append((startingCurr, 10, ['USDT', 'BNB', 'UPUSDT', 'ETH', 'USDT']))
 
         while len(q) > 0:
             t = q.pop(0)
@@ -73,40 +88,61 @@ def main():
 
                     balance = 100
 
+                    volumes = [100]
+
+                    failed_volume_check = False
+
                     for i in range(len(t[2]) - 1):
+
+                        volume_has = G[t[2][i]][t[2][i+1]]['volume']
+                        volume_want = balance * G[t[2][i]][t[2][i+1]]['weight']
+
                         print(
                             f"buy {t[2][i]} and sell {t[2][i+1]} for {G[t[2][i]][t[2][i+1]]['weight']}")
                         print(
-                            f"has volume {G[t[2][i]][t[2][i+1]]['volume']}")
+                            f"has volume {volume_has}")
                         print(
-                            f"want volume {balance * G[t[2][i]][t[2][i+1]]['weight']}")
+                            f"want volume {volume_want}")
 
-                        balance = balance * G[t[2][i]][t[2][i+1]]['weight']
+                        if volume_want > volume_has:
+                            print("========== not enough volume has: ",
+                                  volume_has, "\n ========= want: ", volume_want)
+                            failed_volume_check = True
 
-                        if balance > G[t[2][i]][t[2][i+1]]['volume']:
-                            print("not enough volume has: ",
-                                  G[t[2][i]][t[2][i+1]]['volume'])
-                            print("                  need: ", balance)
+                        volumes.append(volume_want)
 
+                        balance = 0.999999 * balance * \
+                            G[t[2][i]][t[2][i+1]]['weight']
+
+                        if balance < 1e-8:
+                            print("not enough balance")
                             break
 
                     else:
-                        if t[1] > 1.05:
-                            assert False
 
                         print("SUCCESS")
 
+                        failed = placeOrder(username, secret, [
+                            (t[2][i], t[2][i+1], volumes[i]) for i in range(len(t[2]) - 1)])
+
+                        if t[1] > 1.05 and not failed:
+                            print("we bad, nije dobro, idem plakat")
+
+                        assert failed == failed_volume_check
+
                     print("=====================================")
+                else:
+
+                    # print("FAIL " + str(t[1]))
+
+                    pass
 
             for n in G.neighbors(t[0]):
-
-                if t[1]*G[t[0]][n]["weight"] < 1e-8 or t[1]*G[t[0]][n]["weight"] > 1e8:
-                    continue
 
                 if G[t[0]][n]["volume"] < 1e-8:
                     continue
 
-                q.append((n, t[1]*G[t[0]][n]["weight"], t[2]+[n]))
+                q.append((n, t[1] * G[t[0]][n]["weight"], t[2]+[n]))
 
         # currencies = set()
         # for key in data.keys():
