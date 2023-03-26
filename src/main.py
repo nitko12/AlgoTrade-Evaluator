@@ -204,3 +204,10 @@ async def balance(request: Request, user: str):
         raise HTTPException(status_code=400, detail=str(e))
 
     return balance
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0",
+                port=8000, log_level="info")
