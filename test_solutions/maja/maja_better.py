@@ -3,9 +3,9 @@ from pprint import pprint
 import random
 import time
 
-URL = "http://localhost:3000"
+URL = "http://10.130.131.73:3000"
 
-username = "maja" + str(random.randint(0, 100000))
+username = "majaz" + str(random.randint(0, 100000))
 
 
 def main():
@@ -24,8 +24,7 @@ def main():
 
     pot = 0
 
-    while (pot < 2):
-        pot += 1
+    while(True):
 
         # get all
         res = requests.get(
@@ -38,18 +37,14 @@ def main():
 
         startingCurr = "USDT"
 
-        pot2 = [[k, v] for k, v in data.items() if k.split(",")[0] ==
-                f"close_{startingCurr}"]
-        pot3 = [[k, v] for k, v in data.items() if k.split(",")[0].startswith(
-            "close_") and k.split(",")[1] == f"{startingCurr}"]
+        pot2 = [[k,v] for k,v in data.items() if k.split(",")[0] == f"close_{startingCurr}"]
+        pot3 = [[k,v] for k,v in data.items() if k.split(",")[0].startswith("close_") and k.split(",")[1] == f"{startingCurr}"]
 
         # print("len", len(pot2), len(pot2))
 
         currGain = 0
-        trans = []
-        volume = []
-        money = []
-        startVolume = int(1e8*100)  # startingCurr
+        trans = []; volume = []; money = []
+        startVolume = int(1e8*100) #startingCurr
         for key2 in pot2:
             for key3 in pot3:
                 k2 = key2[0].split(",")[1]
@@ -58,21 +53,19 @@ def main():
                 key23 = f"close_{k2},{k3}"
                 if (key23 in data):
                     # allowed volumes
-                    alVol1 = data[f"volume_{startingCurr},{k2}"]
-                    alVol2 = data[f"volume_{k2},{k3}"]
-                    alVol3 = data[f"volume_{k3},{startingCurr}"]
-
+                    alVol1 = data[f"volume_{startingCurr},{k2}"] # volume od 2
+                    alVol2 = data[f"volume_{k2},{k3}"] #volume od 3
+                    alVol3 = data[f"volume_{k3},{startingCurr}"] #volume od 1
+                    
+                    vol1 = int(min(startVolume, alVol1))
                     vol2 = int(min(startVolume*key2[1] // 1e8, alVol1))
                     vol3 = int(min(vol2*data[key23] // 1e8, alVol2))
                     vol4 = int(min(vol3*key3[1] // 1e8, alVol3))
 
-                    if (vol4 > currGain):
-                        trans = [f"{startingCurr},{k2},{vol2}",
-                                 f"{k2},{k3},{vol3}", f"{k3},{startingCurr},{vol4}"]
-                        volume = [data[f"volume_{startingCurr},{k2}"],
-                                  data[f"volume_{k2},{k3}"], data[f"volume_{k3},{startingCurr}"]]
-                        money = [data[f"close_{startingCurr},{k2}"],
-                                 data[f"close_{k2},{k3}"], data[f"close_{k3},{startingCurr}"]]
+                    if(vol4 > currGain):
+                        trans = [f"{startingCurr},{k2},{vol2//key2[1]}", f"{k2},{k3},{vol3//data[key23]}", f"{k3},{startingCurr},{vol4//key3[1]}"]
+                        volume = [data[f"volume_{startingCurr},{k2}"], data[f"volume_{k2},{k3}"], data[f"volume_{k3},{startingCurr}"]]
+                        money = [data[f"close_{startingCurr},{k2}"], data[f"close_{k2},{k3}"], data[f"close_{k3},{startingCurr}"]]
                         currGain = vol4
 
         print("currGain:", currGain // 1e8)
@@ -99,7 +92,7 @@ def main():
         print(startingCurr, finalData[startingCurr] // 1e8)
 
         print("=======================================================")
-
+    
         time.sleep(1)
 
 
