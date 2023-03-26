@@ -52,7 +52,7 @@ class Balances:
         for currency in self.all_currencies:
             self.balances[user][currency] = 0
 
-        self.balances[user][BASE] = 1000
+        self.balances[user][BASE] = 1000 * 10 ** 8
 
     def getBalance(self, user):
 

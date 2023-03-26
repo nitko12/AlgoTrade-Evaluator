@@ -183,10 +183,102 @@ class TestExchange(TestCase):
 
         balance_usdt_to_brl = int(100 * 10 ** 8)
 
-        print(balance_usdt_to_brl)
+        # print(balance_usdt_to_brl)
 
         balance_brl_to_atom = balance_usdt_to_brl * \
             pairs["close_USDT,BRL"] // 10 ** 8
+
+        # print(balance_brl_to_atom)
+
+        balance_atom_to_usdt = balance_brl_to_atom * \
+            pairs["close_BRL,ATOM"] // 10 ** 8
+
+        # print(balance_atom_to_usdt)
+
+        balance_end = balance_atom_to_usdt * \
+            pairs["close_ATOM,USDT"] // 10 ** 8
+
+        # # print("close", pairs["close_ATOM,USDT"])
+
+        # print(balance_end)
+
+        exchange.createOrders(
+            "nitko", secret, f"USDT,BRL,{balance_usdt_to_brl}|BRL,ATOM,{balance_brl_to_atom}|ATOM,USDT,{balance_atom_to_usdt}")
+
+    # def test_kruno(self):
+
+    #     # 'USDT -> BNB -> UPUSTD -> LINK -> USDT'
+
+    #     print("Kruno")
+
+    #     exchange = Exchange(
+    #         True, "/Users/nitkonitkic/Documents/hackathon/data/data2.csv")
+
+    #     pairs = exchange.getAllPairs()
+    #     secret = exchange.register("nitko")
+
+    #     balance_usdt_to_bnb = int(100 * 10 ** 8)
+
+    #     print(balance_usdt_to_bnb)
+
+    #     balance_bnb_to_upusdt = balance_usdt_to_bnb * \
+    #         pairs["close_USDT,BNB"] // 10 ** 8
+
+    #     print(balance_bnb_to_upusdt)
+
+    #     balance_upusdt_to_link = balance_bnb_to_upusdt * \
+    #         pairs["close_BNB,UPUSDT"] // 10 ** 8
+
+    #     print(balance_upusdt_to_link)
+
+    #     balance_link_to_usdt = balance_upusdt_to_link * \
+    #         pairs["close_UPUSDT,LINK"] // 10 ** 8
+
+    #     print(balance_link_to_usdt)
+
+    #     balance_end = balance_link_to_usdt * \
+    #         pairs["close_LINK,USDT"] // 10 ** 8
+
+    #     print(balance_end)
+
+    #     res = exchange.createOrders(
+    #         "nitko", secret, f"USDT,BNB,{balance_usdt_to_bnb}|BNB,UPUSDT,{balance_bnb_to_upusdt}|UPUSDT,LINK,{balance_upusdt_to_link}|LINK,USDT,{balance_link_to_usdt}")
+
+    #     print(f"USDT,BNB,{balance_usdt_to_bnb}|BNB,UPUSDT,{balance_bnb_to_upusdt}|UPUSDT,LINK,{balance_upusdt_to_link}|LINK,USDT,{balance_link_to_usdt}")
+
+    #     balances = exchange.getBalance("nitko")
+
+    #     print(balances["USDT"] / 1e8, balance_end / 1e8)
+
+    def kruno_test_2(self):
+
+        # USDT -> GBP -> SHIB -> BRL -> ATOM -> USDT
+
+        print("Kruno 2")
+
+        exchange = Exchange(
+            True, "/Users/nitkonitkic/Documents/hackathon/data/data2.csv")
+
+        pairs = exchange.getAllPairs()
+
+        secret = exchange.register("nitko")
+
+        balance_usdt_to_gbp = int(100 * 10 ** 8)
+
+        print(balance_usdt_to_gbp)
+
+        balance_gbp_to_shib = balance_usdt_to_gbp * \
+            pairs["close_USDT,GBP"] // 10 ** 8
+
+        print(balance_gbp_to_shib)
+
+        balance_shib_to_brl = balance_gbp_to_shib * \
+            pairs["close_GBP,SHIB"] // 10 ** 8
+
+        print(balance_shib_to_brl)
+
+        balance_brl_to_atom = balance_shib_to_brl * \
+            pairs["close_SHIB,BRL"] // 10 ** 8
 
         print(balance_brl_to_atom)
 
@@ -198,13 +290,64 @@ class TestExchange(TestCase):
         balance_end = balance_atom_to_usdt * \
             pairs["close_ATOM,USDT"] // 10 ** 8
 
-        print("close", pairs["close_ATOM,USDT"])
-
         print(balance_end)
 
-        exchange.createOrders(
-            "nitko", secret, f"USDT,BRL,{balance_usdt_to_brl}|BRL,ATOM,{balance_brl_to_atom}|ATOM,USDT,{balance_atom_to_usdt}")
+        res = exchange.createOrders(
+            "nitko", secret, f"USDT,GBP,{balance_usdt_to_gbp}|GBP,SHIB,{balance_gbp_to_shib}|SHIB,BRL,{balance_shib_to_brl}|BRL,ATOM,{balance_brl_to_atom}|ATOM,USDT,{balance_atom_to_usdt}")
+
+        print(f"USDT,GBP,{balance_usdt_to_gbp}|GBP,SHIB,{balance_gbp_to_shib}|SHIB,BRL,{balance_shib_to_brl}|BRL,ATOM,{balance_brl_to_atom}|ATOM,USDT,{balance_atom_to_usdt}")
+
+        balances = exchange.getBalance("nitko")
+
+        print(balances["USDT"] / 1e8, balance_end / 1e8)
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+
+    print("Kruno 2")
+
+    exchange = Exchange(
+        True, "/Users/nitkonitkic/Documents/hackathon/data/data2.csv")
+
+    pairs = exchange.getAllPairs()
+
+    secret = exchange.register("nitko")
+
+    balance_usdt_to_gbp = int(9.050957279591933e-06 * 100 * 10 ** 8)
+
+    print(balance_usdt_to_gbp)
+
+    balance_gbp_to_shib = balance_usdt_to_gbp * \
+        pairs["close_USDT,GBP"] // 10 ** 8
+
+    print(balance_gbp_to_shib)
+
+    balance_shib_to_brl = balance_gbp_to_shib * \
+        pairs["close_GBP,SHIB"] // 10 ** 8
+
+    print(balance_shib_to_brl)
+
+    balance_brl_to_atom = balance_shib_to_brl * \
+        pairs["close_SHIB,BRL"] // 10 ** 8
+
+    print(balance_brl_to_atom)
+
+    balance_atom_to_usdt = balance_brl_to_atom * \
+        pairs["close_BRL,ATOM"] // 10 ** 8
+
+    print(balance_atom_to_usdt)
+
+    balance_end = balance_atom_to_usdt * \
+        pairs["close_ATOM,USDT"] // 10 ** 8
+
+    print(balance_end)
+
+    res = exchange.createOrders(
+        "nitko", secret, f"USDT,GBP,{balance_usdt_to_gbp}|GBP,SHIB,{balance_gbp_to_shib}|SHIB,BRL,{balance_shib_to_brl}|BRL,ATOM,{balance_brl_to_atom}|ATOM,USDT,{balance_atom_to_usdt}")
+
+    print(f"USDT,GBP,{balance_usdt_to_gbp}|GBP,SHIB,{balance_gbp_to_shib}|SHIB,BRL,{balance_shib_to_brl}|BRL,ATOM,{balance_brl_to_atom}|ATOM,USDT,{balance_atom_to_usdt}")
+
+    balances = exchange.getBalance("nitko")
+
+    print(balances["USDT"] / 1e8, balance_end / 1e8)

@@ -3,6 +3,8 @@ from pprint import pprint
 import random
 import networkx as nx
 import time
+import pandas as pd
+
 
 URL = "http://localhost:3000"
 
