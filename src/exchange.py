@@ -117,7 +117,9 @@ class Exchange:
             return self.forced_time
 
         # za majin sanity
-        return int(time.time() - self.start_time) // 30
+        # return int(time.time() - self.start_time) // 30
+
+        return 0
 
     def getAllPairs(self):
 
@@ -131,7 +133,7 @@ class Exchange:
             self.regenerateVolume()
 
         # za Majin sanity
-        # self.regenerateVolume()
+        self.regenerateVolume()
 
         return self.volume
 
