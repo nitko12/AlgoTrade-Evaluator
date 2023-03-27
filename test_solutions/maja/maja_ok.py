@@ -65,46 +65,62 @@ def main():
             if(k.startswith("close_")):
                 t1,t2 = k.split(",")
                 # print(v)
-                edgeList += [[t1[6:], t2, -v]]
+                edgeList += [[t1[6:], t2, -v/1e8]]
 
-        print(n, len(edgeList))
+        # print(n, len(edgeList))
 
+<<<<<<< HEAD:test_solutions/maja/maja_sporo.py
         print(n * len(edgeList))    
 
         for i in trange(n):
+=======
+        for i in range(n+1):
+>>>>>>> 9b7b770a6499c67c0a12b4812f37b48d07c28d40:test_solutions/maja/maja_ok.py
             for e in edgeList:
                 a, b, cost = e
-                if(tcost[b] > -abs(tcost[a]*cost)):
+                volume1 = data[f"volume_{a},{b}"]
+                volume2 = data[f"volume_{b},{a}"]
+                if(tcost[b] > -abs(tcost[a]*cost) and volume1 > 1e6 and volume2 > 1e6):
                     tcost[b] = -abs(tcost[a]*cost)
 
                     # print(tcost[a]*cost)
 
                     previ[b] = a
+<<<<<<< HEAD:test_solutions/maja/maja_sporo.py
 
                     # pass
                     # print("konj")
 
                 # pass
+=======
+>>>>>>> 9b7b770a6499c67c0a12b4812f37b48d07c28d40:test_solutions/maja/maja_ok.py
         
         # print(previ)
 
-        ind = p, cnt = 0 # pocetni cvor
+        ind = p; cnt = 0 # pocetni cvor
         res = []
-        while(not previ[ind].equals(ind) and not bio[ind] and cnt<10):
+        while(not previ[ind] == ind and not bio[ind]):
             cnt+=1
             bio[ind] = 1
             res += [ind]
             ind = previ[ind]
 
-        for i in range(len(res)-2, 0, -1):
-            res += res[i]
+        for i in range(len(res)-2, -1, -1):
+            res += [res[i]]
         
-        print(res)
-
-        """
+        # print(res)
 
         trans = []
 
+        vol = 100*1e8
+        for i in range(len(res)-1): # MNOZI SA 1e8
+            conv = data[f"close_{res[i]},{res[i+1]}"]
+            alVol = data[f"volume_{res[i]},{res[i+1]}"]
+            vol = min(0.99*vol*conv/1e8,alVol)
+
+            trans += [f"{res[i]},{res[i+1]},{int((1e8*vol/conv*0.99))}"]
+
+            
 
         # place order
 
@@ -124,11 +140,11 @@ def main():
             print(res.json())
 
         finalData = res.json()
-        print(startingCurr, finalData[startingCurr] // 1e8)
+        print(p, finalData[p] // 1e8)
 
         print("=======================================================")
     
-        time.sleep(1)"""
+        time.sleep(1)
 
 
 if __name__ == '__main__':
