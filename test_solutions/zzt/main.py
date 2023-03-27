@@ -6,7 +6,7 @@ import time
 
 URL = "http://localhost:3000"
 
-username = "nitko"
+username = "nitko14"
 
 
 def placeOrder(user, secret, order):
@@ -111,7 +111,7 @@ def main():
 
                         volumes.append(volume_want)
 
-                        balance = 0.999999 * balance * \
+                        balance = 0.99999 * balance * \
                             G[t[2][i]][t[2][i+1]]['weight']
 
                         if balance < 1e-8:

@@ -15,6 +15,9 @@ class Exchange:
 
         self.df = pd.read_csv(path)
 
+        # self.df.to_csv("test_hash.csv", index=False)
+
+
         for column in self.df.columns:
             if column.startswith("close_") or column.startswith("volume_") or column == "time":
                 self.df[column] = self.df[column].astype(int)
@@ -63,7 +66,11 @@ class Exchange:
                 # za test
                 if column in self.original_volume:
                     # print(self.volume[column] ,"a", self.original_volume[column])
-                    old_remaining = self.volume[column] / self.original_volume[column]
+
+                    if self.original_volume[column] == 0:
+                        old_remaining = 1
+                    else:
+                        old_remaining = self.volume[column] / self.original_volume[column]
 
                     used_up = 1 - old_remaining
 

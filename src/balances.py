@@ -64,6 +64,9 @@ class Balances:
     def createOrders(self, user, orders, prices, volumes):
         self.balance_mutex.acquire()
 
+        
+
+
         try:
             all_orders = orders.split("|")
 
@@ -71,6 +74,7 @@ class Balances:
                 raise Exception("Duplicate orders")
 
             new_user_balance = self.balances[user].copy()
+            new_volumes = volumes.copy()
 
             for order in all_orders:
                 fr, to, amount = order.split(",")
@@ -113,10 +117,11 @@ class Balances:
                 if amount_to_buy > 10**30:
                     raise Exception("Too big order 2")
 
-                volumes["volume_" + fr + "," + to] -= amount_to_buy
+                new_volumes["volume_" + fr + "," + to] -= amount_to_buy
                 new_user_balance[fr] -= amount
                 new_user_balance[to] += amount_to_buy
 
+            volumes.update(new_volumes)
             self.balances[user] = new_user_balance
         finally:
             self.balance_mutex.release()

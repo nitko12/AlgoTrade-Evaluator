@@ -69,13 +69,22 @@ def main():
 
         print(n, len(edgeList))
 
+        print(n * len(edgeList))    
+
         for i in trange(n):
             for e in edgeList:
                 a, b, cost = e
                 if(tcost[b] > -abs(tcost[a]*cost)):
                     tcost[b] = -abs(tcost[a]*cost)
+
+                    # print(tcost[a]*cost)
+
                     previ[b] = a
+
+                    # pass
                     # print("konj")
+
+                # pass
         
         # print(previ)
 

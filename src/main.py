@@ -205,6 +205,16 @@ async def balance(request: Request, user: str):
 
     return balance
 
+@ app.get("/")
+@ limiter.limit("20/second")
+async def index(request: Request):
+    """
+    Returns a wholesome message.
+
+    Rate limit: 20/second
+    """
+
+    return {"message": "Drago nam je da si tu!\nNo ovdje nema ništa, dokumentaciju možeš naći na URL-u /docs"}
 
 if __name__ == "__main__":
     import uvicorn

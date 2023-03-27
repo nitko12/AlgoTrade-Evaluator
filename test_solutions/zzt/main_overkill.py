@@ -1,5 +1,8 @@
 from collections import defaultdict
+import json
+import math
 from random import shuffle
+import random
 import networkx as nx
 import requests
 from pprint import pprint
@@ -28,7 +31,8 @@ import matplotlib.pyplot as plt
 # _data = pd.read_csv("data2.csv").iloc[0].to_dict()
 
 
-_data = requests.get("http://localhost:3000/getAllPairs").json()
+# _data = requests.get("http://localhost:3000/getAllPairs").json()
+_data = pd.read_csv("smol.csv").iloc[0].to_dict()
 
 data = {}
 for k, v in _data.items():
@@ -62,145 +66,119 @@ def solve(G, startingCurr, amount):
 
     G = G.copy()
 
-    all_nodes = list(G.nodes)
-    shuffle(all_nodes)
-    random_30_nodes = all_nodes
+    # out edges
+    all_out_edges = list(G.out_edges(startingCurr, data=True))
 
-    G = G.subgraph(
-        [startingCurr] + random_30_nodes)
+    # in edges
+    all_in_edges = list(G.in_edges(startingCurr, data=True))
 
-    G = G.copy()
+    # remove startingCurr
 
-    outbound = G.out_edges(startingCurr, data=True)
-    inbound = G.in_edges(startingCurr, data=True)
+    G.remove_node(startingCurr)
+
+    # add START and END nodes
 
     G.add_node("START")
     G.add_node("END")
 
-    for fr, to, data in outbound:
+    # add edges from START to all out edges
+    for fr, to, data in all_out_edges:
         G.add_edge("START", to, weight=data["weight"], volume=data["volume"])
 
-    for fr, to, data in inbound:
+    # add edges from all in edges to END
+    for fr, to, data in all_in_edges:
         G.add_edge(fr, "END", weight=data["weight"], volume=data["volume"])
 
-    G.remove_node(startingCurr)
+    # print(G.edges(data=True))
 
-    m = gp.Model("flow")
-    m.params.NumericFocus = 2
+    m = gp.Model("mip1")
 
-    # fix  trickle flows
-    m.params.FeasibilityTol = 1e-9
+    eqs = {
+        node: gp.LinExpr()
+        for node in G.nodes
+    }
 
-    eqs = defaultdict(gp.LinExpr)
+    # add variables
+
+    edge_x = m.addVars(G.edges, vtype=gp.GRB.CONTINUOUS, name="x")
+    edge_not_zero = m.addVars(G.edges, vtype=gp.GRB.BINARY, name="not_zero")
+
+    # add constraints
 
     for fr, to, data in G.edges(data=True):
-        flow = m.addVar(vtype=gp.GRB.CONTINUOUS, name=f"{fr}->{to}")
+        m.addConstr(edge_x[fr, to] * data["weight"] <= min(1000000, data["volume"]))
 
-        eqs[fr] -= flow
-        eqs[to] += flow * data["weight"]
 
-        m.addConstr(flow * data["weight"] <= data["volume"])
-
-        m.addConstr(flow <= 1e20)
-        m.addConstr(flow * data["weight"] <= 1e20)
-
-        temp1 = m.addVar(vtype=gp.GRB.BINARY, name=f"{fr}->{to}_zero")
-
-        m.addConstr((temp1 == 0) >> (flow == 0))
-        m.addConstr((temp1 == 1) >> (flow >= 1e-7))
-
-        temp2 = m.addVar(vtype=gp.GRB.BINARY, name=f"{fr}->{to}_zero")
-
-        m.addConstr((temp2 == 0) >> (flow * data["weight"] == 0))
-        m.addConstr((temp2 == 1) >> (flow * data["weight"] >= 1e-7))
-
-        G[fr][to]["var"] = flow
-        G[fr][to]["var_bin"] = temp1
-
-    for node in G.nodes:
-        # add deg 2 constraint for all nodes
-
-        if node == "START" or node == "END":
-            continue
+    for fr, to, data in G.edges(data=True):
 
         m.addConstr(
-            gp.quicksum(G[fr][node]["var_bin"]
-                        for fr, _, _ in G.in_edges(node, data=True)) ==
-            gp.quicksum(G[node][to]["var_bin"]
-                        for _, to, _ in G.out_edges(node, data=True))
+            (edge_not_zero[fr, to] == 0) >> (edge_x[fr, to] == 0)
         )
 
         m.addConstr(
-            gp.quicksum(G[fr][node]["var_bin"]
-                        for fr, _, _ in G.in_edges(node, data=True)) <=
-            1
+            (edge_not_zero[fr, to] == 1) >> (edge_x[fr, to] >= 1e-8)
         )
 
-        m.addConstr(
-            gp.quicksum(G[node][to]["var_bin"]
-                        for _, to, _ in G.out_edges(node, data=True)) <=
-            1
-        )
+        eqs[fr] -= edge_x[fr, to] 
+        eqs[to] += edge_x[fr, to] * data["weight"]
 
-    starting_amount = m.addVar(vtype=gp.GRB.CONTINUOUS, name="starting_amount")
-    eqs["START"] += starting_amount
+    start_flow = amount
+    end_flow = m.addVar(vtype=gp.GRB.CONTINUOUS, name="end_flow")
 
-    m.addConstr(starting_amount <= amount)
-
-    ending_amount = m.addVar(vtype=gp.GRB.CONTINUOUS, name="ending_amount")
-    eqs["END"] -= ending_amount
+    eqs["START"] += start_flow
+    eqs["END"] -= end_flow
 
     for node in G.nodes:
         m.addConstr(eqs[node] == 0)
 
-    m.setObjective(ending_amount, gp.GRB.MAXIMIZE)
+    eqs["START"] += start_flow
+    eqs["END"] -= end_flow
+    
+    m.setObjective(end_flow, gp.GRB.MAXIMIZE)
+
     m.optimize()
 
-    print("Optimal value: ", m.objVal)
+    transactions = []
 
     G2 = nx.DiGraph()
 
-    for fr, to, data in G.edges(data=True):
-        if data["var"].x > 0:
-            G2.add_edge(fr, to, var=data["var"], weight=data["weight"])
+    for edge, var in edge_x.items():
+        if var.x > 0:
+            # print(f"{edge[0]},{edge[1]},{int(var.x * 10 ** 8)}")
+            transactions.append((edge[0], edge[1], var.x))
 
-            # print(f"{fr} -> {to} : {data['var'].x * data['weight']}")
+            G2.add_edge(edge[0], edge[1], weight=var.x)
 
-    # for cycle in nx.simple_cycles(G2):
-    #     print(cycle)
+    for cycle in nx.simple_cycles(G2):
+        print(cycle)
+    
 
-    # do bfs on G2
-    q = ["START"]
-    vis = set()
+    # balances = {
+    #     node: 0
+    #     for node in G.nodes
+    # }
+    # balances["START"] = amount
 
-    s = ""
+    # # shuffle transactions
 
-    while len(q) > 0:
-        curr = q.pop(0)
+    # # random.shuffle(transactions)
 
-        if curr in vis:
-            continue
+    # while len(transactions) > 0:
+    #     # print(len(transactions))
+        
+    #     for fr, to, value in transactions:
 
-        vis.add(curr)
+    #         if balances[fr] < value:
+    #             continue
 
-        for to, data in G2.adj[curr].items():
+    #         balances[fr] -= value
+    #         balances[to] += value
 
-            print(f"{curr} -> {to} : {data['var'].x}")
+    #         # print(f"{fr},{to},{value}")
 
-            _curr = curr
-            if curr == "START":
-                _curr = startingCurr
+    #         transactions.remove((fr, to, value))
 
-            _to = to
-            if to == "END":
-                _to = startingCurr
-
-            s += f"{_curr},{_to},{int(data['var'].x * 10 ** 8)}|"
-
-            q.append(to)
-
-    with open("solution.txt", "w") as f:
-        f.write(s[:-1])
+    # print(balances)
 
 
 def main():
@@ -208,7 +186,9 @@ def main():
 
     G = makeGraph(data)
 
-    solve(G, "USDT", 10)
+    solve(G, "USDT", 1000)
+
+    print(G)
 
     # print(G)
 

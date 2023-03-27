@@ -1,0 +1,4 @@
+fastapi==0.95.0
+pandas==1.5.3
+slowapi==0.1.7
+uvicorn==0.21.1
