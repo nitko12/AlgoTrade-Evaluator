@@ -39,8 +39,8 @@ for k, v in _data.items():
     if "close" in k or "volume" in k:
         data[k] = (v / 10 ** 8)
 
-    if "volume" in k:
-        data[k] = 0.1 * data[k]
+    # if "volume" in k:
+    #     data[k] = data[k] / 10 ** 8
 
 
 def makeGraph(data):
@@ -93,6 +93,12 @@ def solve(G, startingCurr, amount):
 
     m = gp.Model("mip1")
 
+    # set numerical focus
+    m.setParam(gp.GRB.Param.NumericFocus, 3)
+
+    # set numerical tolerance
+    m.setParam(gp.GRB.Param.IntFeasTol, 1e-9)
+
     eqs = {
         node: gp.LinExpr()
         for node in G.nodes
@@ -106,7 +112,7 @@ def solve(G, startingCurr, amount):
     # add constraints
 
     for fr, to, data in G.edges(data=True):
-        m.addConstr(edge_x[fr, to] * data["weight"] <= min(1000000, data["volume"]))
+        m.addConstr(edge_x[fr, to] * data["weight"] <= data["volume"])
 
 
     for fr, to, data in G.edges(data=True):
@@ -121,6 +127,35 @@ def solve(G, startingCurr, amount):
 
         eqs[fr] -= edge_x[fr, to] 
         eqs[to] += edge_x[fr, to] * data["weight"]
+
+    # deg 2 constr
+
+    for node in G.nodes:
+        if node == "START":
+            m.addConstr(
+                gp.quicksum(edge_not_zero["START", to] for to in G.successors(node)) == 1
+            )
+
+        elif node == "END":
+            m.addConstr(
+                gp.quicksum(edge_not_zero[fr, "END"] for fr in G.predecessors(node)) == 1
+            )
+
+        else:
+            m.addConstr(
+                gp.quicksum(edge_not_zero[fr, node] for fr in G.predecessors(node)) ==
+                gp.quicksum(edge_not_zero[node, to] for to in G.successors(node))
+            )
+            m.addConstr(
+                gp.quicksum(edge_not_zero[fr, node] for fr in G.predecessors(node)) <=
+                1
+            )
+            m.addConstr(
+                gp.quicksum(edge_not_zero[fr, node] for fr in G.predecessors(node)) <=
+                1
+            )
+
+
 
     start_flow = amount
     end_flow = m.addVar(vtype=gp.GRB.CONTINUOUS, name="end_flow")
@@ -139,25 +174,64 @@ def solve(G, startingCurr, amount):
     m.optimize()
 
     transactions = []
+    
 
     G2 = nx.DiGraph()
 
     for edge, var in edge_x.items():
         if var.x > 0:
-            # print(f"{edge[0]},{edge[1]},{int(var.x * 10 ** 8)}")
+            print(f"{edge[0]},{edge[1]},{int(var.x * 10 ** 8)}")
             transactions.append((edge[0], edge[1], var.x))
 
             G2.add_edge(edge[0], edge[1], weight=var.x)
 
-    for cycle in nx.simple_cycles(G2):
-        print(cycle)
     
-
     # balances = {
     #     node: 0
     #     for node in G.nodes
     # }
     # balances["START"] = amount
+
+    # filled = [
+    #     0 for _ in range(len(transactions))
+    # ]
+
+    # mx = 0
+
+    # def search_order():
+
+    #     nonlocal mx
+
+    #     if sum(filled) > mx:
+    #         mx = sum(filled)
+
+    #         print(sum(filled), len(transactions))
+
+    #     if sum(filled) == len(filled):
+    #         # print(balances)
+    #         return
+        
+    #     for f, tr in zip(filled, transactions):
+    #         if f == 1:
+    #             continue
+
+    #         if balances[tr[0]] + 0.1 < tr[2]:
+    #             continue
+
+    #         balances[tr[0]] -= tr[2]
+    #         balances[tr[1]] += tr[2] * G[tr[0]][tr[1]]["weight"]
+
+    #         filled[transactions.index(tr)] = 1
+
+    #         search_order()
+
+    #         balances[tr[0]] += tr[2]
+    #         balances[tr[1]] -= tr[2] * G[tr[0]][tr[1]]["weight"]
+
+    #         filled[transactions.index(tr)] = 0
+        
+    # search_order()
+
 
     # # shuffle transactions
 

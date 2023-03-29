@@ -162,7 +162,7 @@ class Exchange:
                     if column not in self.price_multiplier:
                         self.price_multiplier[column] = 1
 
-                    out[column] = int(self.df[column].iloc[at_time] * self.price_multiplier[column])
+                    out[column] = int(self.df[column].iloc[at_time] / self.price_multiplier[column])
                 else:
                     out[column] = int(self.df[column].iloc[at_time])
 
