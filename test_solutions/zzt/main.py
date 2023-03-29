@@ -3,10 +3,11 @@ from pprint import pprint
 import random
 import networkx as nx
 import time
+from sys import argv
 
 URL = "http://localhost:3000"
 
-username = "nitko14"
+username = argv[1]
 
 
 def placeOrder(user, secret, order):
@@ -44,6 +45,10 @@ def main():
 
     while (True):
 
+        print("Waiting for new round")
+
+        start = time.time()
+
         # get all
         res = requests.get(
             f"{URL}/getAllPairs/")
@@ -68,6 +73,8 @@ def main():
             G.add_edge(
                 fr, to, weight=data["close_"+key] / (10 ** 8), volume=data["volume_"+key] / (10 ** 8))
 
+        cnt = 0 
+
         q = []
         q.append((startingCurr, 1, [startingCurr]))
 
@@ -75,6 +82,10 @@ def main():
 
         while len(q) > 0:
             t = q.pop(0)
+
+            if time.time() - start > 29:
+                print("TIMEOUT")
+                break
 
             # print(t)
 
@@ -123,7 +134,7 @@ def main():
                         print("SUCCESS")
 
                         failed = placeOrder(username, secret, [
-                            (t[2][i], t[2][i+1], volumes[i]) for i in range(len(t[2]) - 1)])
+                            (t[2][i], t[2][i+1], 0.9999 * volumes[i]) for i in range(len(t[2]) - 1)])
 
                         if t[1] > 1.05 and not failed:
                             print("we bad, nije dobro, idem plakat")
@@ -175,7 +186,9 @@ def main():
         #     if balance > 0:
         #         print(cycle, balance)
 
-        time.sleep(1)
+        # time.sleep(1)
+
+        print("Time: ", time.time() - start)
 
 
 if __name__ == '__main__':

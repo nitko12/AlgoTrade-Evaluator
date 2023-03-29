@@ -8,15 +8,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-import logging
-
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+TEST = False
 
-exchange = Exchange(True)
+exchange = Exchange(TEST)
 
 # /getAllPairs
 # /getPairs
@@ -215,6 +214,28 @@ async def index(request: Request):
     """
 
     return {"message": "Drago nam je da si tu!\nNo ovdje nema ništa, dokumentaciju možeš naći na URL-u /docs"}
+
+TOP_SECRET = "42_je_fora_broj"
+
+@ app.get("/getAllBalances")
+@ limiter.limit("20/second")
+async def getAllBalances(request: Request, secret: str):
+    """
+    Returns the balance of all users in all currencies.
+
+    Rate limit: 20/second
+    """
+
+    if secret != TOP_SECRET:
+        raise HTTPException(status_code=400, detail="Invalid secret")
+
+    try:
+        balance = exchange.getAllBalances()
+    except Exception as e:
+
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return balance
 
 if __name__ == "__main__":
     import uvicorn

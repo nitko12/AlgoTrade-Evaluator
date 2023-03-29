@@ -76,6 +76,8 @@ class Balances:
             new_user_balance = self.balances[user].copy()
             new_volumes = volumes.copy()
 
+            print(new_volumes)
+
             for order in all_orders:
                 fr, to, amount = order.split(",")
 
@@ -125,3 +127,6 @@ class Balances:
             self.balances[user] = new_user_balance
         finally:
             self.balance_mutex.release()
+
+    def getAllBalances(self):
+        return self.balances

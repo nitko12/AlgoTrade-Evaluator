@@ -8,7 +8,7 @@ import time
 DAMPING_FACTOR = 1.1
 
 class Exchange:
-    def __init__(self, test, path="../data/data2.csv") -> None:
+    def __init__(self, test, path="../data/round1.csv") -> None:
 
         self.test = test
         self.forced_time = None
@@ -42,8 +42,6 @@ class Exchange:
         self.volume = {}
         self.this_tick_volume = {}
         self.original_volume = {}
-
-        self.price_multiplier = {}
 
         # print(all_currencies)
 
@@ -84,27 +82,6 @@ class Exchange:
                     new_volume[column] = factor * new_real
                     new_original_volume[column] = new_real
                     new_this_tick_volume[column] = factor * new_real
-
-                    # price
-
-                    column_close = column.replace("volume", "close")
-
-                    if column_close not in self.price_multiplier:
-                        self.price_multiplier[column] = 1
-
-                    old_remaining = self.volume[column] / self.this_tick_volume[column]
-
-                    used_up = 1 - old_remaining
-
-                    if column_close not in self.price_multiplier:
-                        self.price_multiplier[column_close] = 1
-
-                    self.price_multiplier[column_close] = 0.5 * (1 + used_up * 0.05) + \
-                        0.5 * self.price_multiplier[column_close]
-                    
-                    self.price_multiplier[column_close] = min(max(1, self.price_multiplier[column_close]), 1.05)
-
-                    # print("price multiplier for", column_close, "is", self.price_multiplier[column_close])
 
                 else:
                       
@@ -157,14 +134,7 @@ class Exchange:
 
         for column in self.df.columns:
             if column.startswith("close_") and not column.startswith("close_time"):
-
-                if dynamic_price:
-                    if column not in self.price_multiplier:
-                        self.price_multiplier[column] = 1
-
-                    out[column] = int(self.df[column].iloc[at_time] / self.price_multiplier[column])
-                else:
-                    out[column] = int(self.df[column].iloc[at_time])
+                out[column] = int(self.df[column].iloc[at_time])
 
         # print(self.getAllVolumes().items())
 
@@ -187,9 +157,6 @@ class Exchange:
             user, orders, self.getAllPairs(), self.getAllVolumes())
 
     def register(self, user):
-        if not self.test:
-            raise Exception("Not in test mode")
-
         return self.balances.register(user)
 
     def getBalance(self, user):
@@ -200,3 +167,6 @@ class Exchange:
             raise Exception("Not in test mode")
 
         self.balances.resetBalance(user, secret)
+
+    def getAllBalances(self):
+        return self.balances.getAllBalances()
