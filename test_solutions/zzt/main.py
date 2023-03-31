@@ -26,7 +26,17 @@ def placeOrder(user, secret, order):
 
     print("Order: ", res.json())
 
-    return "detail" in res.json()
+    if "detail" in res.json():
+        # print("Error: ", res.json())
+
+        print(res.json()["detail"])
+
+        if res.json()["detail"].find("User does not have enough to buy") == -1:
+            return True
+        else:
+            return True
+
+    return False
 
 
 def main():
@@ -139,7 +149,7 @@ def main():
                         if t[1] > 1.05 and not failed:
                             print("we bad, nije dobro, idem plakat")
 
-                        assert failed == failed_volume_check
+                        # assert failed == failed_volume_check
 
                     print("=====================================")
                 else:

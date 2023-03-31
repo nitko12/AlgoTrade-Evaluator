@@ -107,7 +107,7 @@ class Exchange:
 
     def getAllPairs(self):
 
-        return self.getAllPairsAtTime(self.getTime(), include_volume=True, dynamic_price=True)
+        return self.getAllPairsAtTime(self.getTime(), include_volume=True)
 
     def getAllVolumes(self):
 
@@ -121,7 +121,7 @@ class Exchange:
 
         return self.volume
 
-    def getAllPairsAtTime(self, at_time, include_volume=False, dynamic_price=False):
+    def getAllPairsAtTime(self, at_time, include_volume=False):
         time_now = self.getTime()
 
         if at_time > time_now:

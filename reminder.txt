@@ -1,0 +1,2 @@
+http://localhost:3000/getIPsAndWrongRequests?secret=42_je_fora_broj
+http://localhost:3000/getAllBalancesCondensed?secret=42_je_fora_broj

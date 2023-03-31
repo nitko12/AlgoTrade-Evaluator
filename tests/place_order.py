@@ -3,7 +3,7 @@ import requests
 from pprint import pprint
 import math
 
-URL = "http://localhost:8000"
+URL = "http://localhost:3000"
 
 
 def test1():
@@ -22,14 +22,14 @@ def test1():
     prices = requests.get(f"{URL}/getAllPairs").json()
 
     res = requests.get(
-        f"{URL}/createOrders/nitko{id}/{secret}/USDT,BTC,100").json()
+        f"{URL}/createOrders/nitko{id}/{secret}/USDT,BTC,10000000000").json()
 
     print(res)
 
     balance_after = requests.get(f"{URL}/balance/nitko{id}").json()
 
-    expected_usdt = 1000 - 100
-    expected_btc = 100 * prices["close_USDT,BTC"]
+    expected_usdt = 1000_0000_0000 - 100_0000_0000
+    expected_btc = 100_0000_0000 * prices["close_USDT,BTC"] // 10**8
 
     print(balance_before["USDT"], balance_before["BTC"])
     print(balance_after["USDT"], balance_after["BTC"])

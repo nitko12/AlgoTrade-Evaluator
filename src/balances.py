@@ -64,9 +64,6 @@ class Balances:
     def createOrders(self, user, orders, prices, volumes):
         self.balance_mutex.acquire()
 
-        
-
-
         try:
             all_orders = orders.split("|")
 
@@ -76,7 +73,7 @@ class Balances:
             new_user_balance = self.balances[user].copy()
             new_volumes = volumes.copy()
 
-            print(new_volumes)
+            # print(new_volumes)
 
             for order in all_orders:
                 fr, to, amount = order.split(",")
