@@ -40,10 +40,15 @@ class Exchange:
 
         self.last_volume_update = -1
         self.volume = {}
-        self.this_tick_volume = {}
         self.original_volume = {}
 
         # print(all_currencies)
+
+    def getOriginalVolume(self):
+        return self.original_volume
+    
+    def setOriginalVolume(self, volume):
+        self.original_volume = volume
 
     def setTest(self, test):
         self.test = test
@@ -58,19 +63,19 @@ class Exchange:
         new_original_volume = {}
         new_this_tick_volume = {}
 
+        original_volume = self.getOriginalVolume()
+
         for column in self.df.columns:
             if column.startswith("volume_"):
 
                 # za test
-                if column in self.original_volume:
-                    # print(self.volume[column] ,"a", self.original_volume[column])
+                if column in original_volume:
+                    # print(self.volume[column] ,"a", original_volume[column])
 
-                    if self.original_volume[column] == 0:
+                    if original_volume[column] == 0:
                         old_remaining = 1
                     else:
-                        old_remaining = self.volume[column] / self.original_volume[column]
-
-                    used_up = 1 - old_remaining
+                        old_remaining = self.volume[column] / original_volume[column]
 
                     # volume
 
@@ -92,8 +97,7 @@ class Exchange:
                 # self.volume[column] = self.df[column].iloc[self.last_volume_update]
 
         self.volume = new_volume
-        self.original_volume = new_original_volume
-        self.this_tick_volume = new_this_tick_volume
+        self.setOriginalVolume(new_original_volume)
 
     def getTime(self):
 
